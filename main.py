@@ -2,13 +2,12 @@ import pygame
 from game_config import *
 from game_items import *
 
-
 pygame.init()
 screen = pygame.display.set_mode((DP_WIDTH, DP_HEIGHT))
 clock = pygame.time.Clock()
 
 background = Background(screen)
-user_car = Car(screen)
+user_car = Car(screen, CAR_PATH)
 enemies = Enemies(screen)
 coins = Coins(screen)
 
@@ -32,7 +31,7 @@ while running:
 
     background.move(second_count)
     coins.move(background.speed)
-    enemies.move(background.speed - 2)
+    enemies.move(background.speed)
     user_car.move()
 
     screen.fill(GRAY)
@@ -41,14 +40,12 @@ while running:
     enemies.draw()
     user_car.draw()
 
-    show_dev_info(dev_info, screen, second_count, user_car, background, enemies)
+    show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins)
     show_player_info(dev_info, screen, second_count, coins, background)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             quit()
-            # pygame.quit()
-            # running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F1:
                 dev_info = not dev_info
@@ -59,3 +56,4 @@ while running:
 
     enemies.collision(user_car)
     coins.collision(user_car)
+
