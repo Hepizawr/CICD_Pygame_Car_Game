@@ -29,6 +29,8 @@ while running:
     enemies.generate(second_count)
     coins.generate(second_count)
 
+    user_car.make_invulnerable(second_count, frame_count)
+
     background.move(second_count)
     coins.move(background.speed)
     enemies.move(background.speed)
@@ -41,7 +43,7 @@ while running:
     user_car.draw()
 
     show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins)
-    show_player_info(dev_info, screen, second_count, coins, background)
+    show_player_info(dev_info, screen, second_count, coins, user_car, background)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -54,6 +56,6 @@ while running:
 
     pygame.display.update()
 
-    enemies.collision(user_car)
-    coins.collision(user_car)
+    enemies.collision(user_car, second_count)
+    coins.collision(user_car, second_count)
 

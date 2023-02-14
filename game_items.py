@@ -33,14 +33,18 @@ class Background:
             self.rect.y = 0
 
 
+def get_car_right_image(model_path: str):
+    image = pygame.image.load(model_path)
+    k_height = image.get_height() / image.get_width()
+    return pygame.transform.scale(image, (DP_HEIGHT / 8.5, (DP_HEIGHT / 8.5) * k_height))
+
+
 class RoadObject:
     def __init__(self, screen: pygame.surface, model_path: str, ob_centerx: int = (DP_WIDTH // 2),
                  ob_bottom: int = DP_HEIGHT, ob_rotate: bool = False):
         self.screen = screen
         self.ob_rotate = ob_rotate
-        image = pygame.image.load(model_path)
-        k_height = image.get_height() / image.get_width()
-        image = pygame.transform.scale(image, (DP_HEIGHT / 8.5, (DP_HEIGHT / 8.5) * k_height))
+        image = get_car_right_image(model_path)
         self.image = pygame.transform.rotate(image, 180 * self.ob_rotate)
         self.rect = self.image.get_rect(centerx=ob_centerx, bottom=ob_bottom)
         self.hitbox = pygame.transform.scale(self.image,
@@ -52,6 +56,10 @@ class RoadObject:
 
 
 class Car(RoadObject):
+    health = USER_CAR_HEALTH
+    damage_taken = False
+    invulnerable_time_start = 0
+
     def move(self):
         speed = DP_HEIGHT * 0.015
         keys = pygame.key.get_pressed()
@@ -70,6 +78,14 @@ class Car(RoadObject):
 
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.centery = self.rect.centery
+
+    def make_invulnerable(self, time: int, frame: int):
+        if self.damage_taken and self.health > 0:
+            if int(time - self.invulnerable_time_start) != USER_CAR_INVULNERABLE_TIME:
+                self.image = get_car_right_image(AUDI_SPIRIT) if frame % 6 in (0, 1, 2) else get_car_right_image(CAR_PATH)
+            else:
+                self.image = get_car_right_image(CAR_PATH)
+                self.damage_taken = False
 
 
 # class Car:
@@ -129,7 +145,7 @@ class RoadObjects(ABC):
                 self.list.remove(item)
 
     @abstractmethod
-    def collision(self, collision_object: Car):
+    def collision(self, collision_object: Car, time: int):
         ...
 
     @abstractmethod
@@ -157,10 +173,15 @@ class Enemies(RoadObjects):
             else:
                 self.list.append(RoadObject(self.screen, car_model, road_line, -120, False))
 
-    def collision(self, collision_object: Car):
+    def collision(self, collision_object: Car, time: int):
         for item in self.list:
-            if item.hitbox.colliderect(collision_object.hitbox):
-                end_screen(self.screen)
+            if item.hitbox.colliderect(collision_object.hitbox) and not collision_object.damage_taken:
+                if collision_object.health > 1:
+                    collision_object.health -= 1
+                    collision_object.damage_taken = True
+                    collision_object.invulnerable_time_start = time
+                elif collision_object.health == 1:
+                    end_screen(self.screen)
 
 
 class Coins(RoadObjects):
@@ -173,7 +194,7 @@ class Coins(RoadObjects):
             road_line = DP_HEIGHT * (random.randrange(28, 74, 15) / 100) + DP_DELTA
             self.list.append(RoadObject(self.screen, coin_model, road_line, -120))
 
-    def collision(self, collision_object: Car):
+    def collision(self, collision_object: Car, time: int):
         for item in self.list:
             if item.hitbox.colliderect(collision_object.hitbox):
                 self.count += 1
@@ -310,6 +331,8 @@ def show_dev_info(show: bool, screen: pygame.surface, time: int, user_car: Car, 
         screen.blit(font_object.render(f"Background Y: {background.rect.y}", True, RED), (10, 70))
         screen.blit(font_object.render(f"Enemies count: {len(enemies.list)}", True, BLACK), (10, 100))
         screen.blit(font_object.render(f"Coins count: {len(coins.list)}", True, BLACK), (10, 120))
+        screen.blit(font_object.render(f"Player health: {user_car.health}", True, BLACK), (10, 140))
+        screen.blit(font_object.render(f"Player damage taken: {user_car.damage_taken}", True, BLACK), (10, 160))
 
         for car in enemies.list:
             pygame.draw.rect(screen, BLACK, car.hitbox, 1)
@@ -319,9 +342,10 @@ def show_dev_info(show: bool, screen: pygame.surface, time: int, user_car: Car, 
         pygame.draw.rect(screen, RED, user_car.hitbox, 1)
 
 
-def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, background: Background):
+def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, background: Background):
     if not show:
-        font_object = pygame.font.Font(pygame.font.get_default_font(), 15)
-        screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (10, 10))
-        screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (10, 30))
-        screen.blit(font_object.render(f"Score: {int(int(time) * (background.speed / 5))}", True, BLACK), (10, 50))
+        font_object = pygame.font.Font(pygame.font.get_default_font(), DP_HEIGHT//50)
+        screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//90))
+        screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//30))
+        screen.blit(font_object.render(f"Health: {user_car.health}", True, RED), (DP_WIDTH/45, DP_HEIGHT//18))
+        # screen.blit(font_object.render(f"Score: {int(int(time) * (background.speed / 5))}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//18))

@@ -1,5 +1,5 @@
-DP_WIDTH = 700
-DP_HEIGHT = 700
+DP_WIDTH = 1600
+DP_HEIGHT = 900
 DP_DELTA = (DP_WIDTH - DP_HEIGHT)//2
 FPS = 30
 
@@ -13,6 +13,9 @@ TIME_TO_GENERATE_COIN = 5
 
 K_HITBOX = 0.85
 
+USER_CAR_HEALTH = 1
+USER_CAR_INVULNERABLE_TIME = 3
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (102, 102, 102)
@@ -21,6 +24,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 AUDI = "image/cars/Rght_size/AUDI.png"
+AUDI_SPIRIT = "image/cars/Rght_size/Audi_opacity_50.png"
 AMBULANCE = "image/cars/Rght_size/Ambulance.png"
 VIPER = "image/cars/Rght_size/BLACK_VIPER.png"
 CAR = "image/cars/Rght_size/CAR.png"
