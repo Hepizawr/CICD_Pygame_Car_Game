@@ -26,7 +26,8 @@ while running:
     frame_count += 1
     second_count = frame_count / FPS
 
-    enemies.generate(second_count)
+    # enemies.generate(second_count)
+    enemies.generate(frame_count)
     coins.generate(second_count)
 
     user_car.make_invulnerable(second_count, frame_count)
@@ -42,7 +43,7 @@ while running:
     enemies.draw()
     user_car.draw()
 
-    show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins)
+    show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins, frame_count)
     show_player_info(dev_info, screen, second_count, coins, user_car, background)
 
     for event in pygame.event.get():
