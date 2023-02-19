@@ -1,5 +1,3 @@
-import pygame
-from game_config import *
 from game_items import *
 
 pygame.init()
@@ -26,9 +24,8 @@ while running:
     frame_count += 1
     second_count = frame_count / FPS
 
-    # enemies.generate(second_count)
-    enemies.generate(frame_count)
-    coins.generate(second_count)
+    enemies.generate()
+    coins.generate()
 
     user_car.make_invulnerable(second_count, frame_count)
 
@@ -59,4 +56,3 @@ while running:
 
     enemies.collision(user_car, second_count)
     coins.collision(user_car, second_count)
-

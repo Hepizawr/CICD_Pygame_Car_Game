@@ -39,6 +39,3 @@ CARS_PATH = [AUDI, AMBULANCE, VIPER, CAR, MINI_TRUCK, MINI_VAN, POLICE, TAXI, TR
 BG_PATH = "image/background/background-1_0.png"
 BUTTON_PATH = "image/buttons/Button08.png"
 COIN_PATH = "image/coins/coin.png"
-
-
-
