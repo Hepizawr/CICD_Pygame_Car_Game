@@ -88,42 +88,6 @@ class Car(RoadObject):
                 self.damage_taken = False
 
 
-# class Car:
-#     def __init__(self, screen: pygame.surface, car_path: str = CAR_PATH, car_centerx: int = (DP_WIDTH // 2),
-#                  car_bottom: int = DP_HEIGHT):
-#         self.screen = screen
-#         image = pygame.image.load(car_path)
-#         k_car_height = image.get_height() / image.get_width()
-#         # self.image = pygame.transform.scale(image, (DP_WIDTH / 8.5, (DP_WIDTH / 8.5) * k_car_height))
-#         self.image = pygame.transform.scale(image, (DP_HEIGHT / 8.5, (DP_HEIGHT / 8.5) * k_car_height))
-#         self.rect = self.image.get_rect(centerx=car_centerx, bottom=car_bottom)
-#         self.hitbox = pygame.transform.scale(self.image,
-#                                               (self.rect.width / 1.2, self.rect.height / 1.2)).get_rect(
-#             centerx=self.rect.centerx, centery=self.rect.centery)
-#
-#     def draw(self):
-#         self.screen.blit(self.image, self.rect)
-#
-#     def move(self):
-#         speed = DP_HEIGHT * 0.015
-#         keys = pygame.key.get_pressed()
-#         if keys[pygame.K_LEFT]:
-#             if self.rect.x > DP_HEIGHT / 5 + DP_DELTA:
-#                 self.rect.x -= speed
-#         elif keys[pygame.K_RIGHT]:
-#             if self.rect.x < DP_HEIGHT - (DP_HEIGHT / 5) - self.rect.width + DP_DELTA:
-#                 self.rect.x += speed
-#         elif keys[pygame.K_UP]:
-#             if self.rect.y > 0:
-#                 self.rect.y -= speed
-#         elif keys[pygame.K_DOWN]:
-#             if self.rect.y < DP_HEIGHT - self.rect.height:
-#                 self.rect.y += speed
-#
-#         self.hitbox.centerx = self.rect.centerx
-#         self.hitbox.centery = self.rect.centery
-
-
 class RoadObjects(ABC):
     def __init__(self, screen: pygame.surface):
         self.screen = screen
@@ -149,7 +113,7 @@ class RoadObjects(ABC):
         ...
 
     @abstractmethod
-    def generate(self, time: int):
+    def generate(self):
         ...
 
 
@@ -163,7 +127,7 @@ class Enemies(RoadObjects):
             item.hitbox.centery = item.rect.centery
         self._check_object_delete()
 
-    def generate(self, time: float):
+    def generate(self):
         random.seed(tm.time())
         if len(self.list) == 0 or self.list[-1].rect.y > random.randint(DP_HEIGHT//(-45), DP_HEIGHT//9):
             car_model = CARS_PATH[random.randrange(0, len(CARS_PATH))]
@@ -187,7 +151,7 @@ class Enemies(RoadObjects):
 class Coins(RoadObjects):
     count = 0
 
-    def generate(self, time: int):
+    def generate(self):
         random.seed(tm.time())
         if len(self.list) == 0 or self.list[-1].rect.y > DP_HEIGHT//2:
             coin_model = COIN_PATH
