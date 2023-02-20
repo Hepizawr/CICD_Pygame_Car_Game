@@ -1,5 +1,7 @@
 from game_items import *
 
+
+
 pygame.init()
 screen = pygame.display.set_mode((DP_WIDTH, DP_HEIGHT))
 clock = pygame.time.Clock()

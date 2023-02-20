@@ -1,5 +1,6 @@
 import pygame
 import random
+import argparse
 from abc import ABC, abstractmethod
 import time as tm
 from game_config import *
@@ -82,7 +83,7 @@ class Car(RoadObject):
     def make_invulnerable(self, time: int, frame: int):
         if self.damage_taken and self.health > 0:
             if int(time - self.invulnerable_time_start) != USER_CAR_INVULNERABLE_TIME:
-                self.image = get_car_right_image(AUDI_SPIRIT) if frame % 6 in (0, 1, 2) else get_car_right_image(CAR_PATH)
+                self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(CAR_PATH)
             else:
                 self.image = get_car_right_image(CAR_PATH)
                 self.damage_taken = False
@@ -318,3 +319,4 @@ def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins
         screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//30))
         screen.blit(font_object.render(f"Health: {user_car.health}", True, RED), (DP_WIDTH/45, DP_HEIGHT//18))
         # screen.blit(font_object.render(f"Score: {int(int(time) * (background.speed / 5))}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//18))
+
