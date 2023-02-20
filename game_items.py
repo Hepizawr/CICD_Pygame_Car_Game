@@ -305,10 +305,14 @@ def end_screen(screen: pygame.surface):
         screen.blit(button_exit_text, bet_rect)
 
         pygame.display.update()
-
+        global SCORE, PREVIOUS_SCORE, BEST_SCORE
         for event in pygame.event.get():
             if button_restart.collidepoint(pygame.mouse.get_pos()):
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    PREVIOUS_SCORE = SCORE
+                    if PREVIOUS_SCORE>BEST_SCORE:
+                        BEST_SCORE = PREVIOUS_SCORE
+                    SCORE = 0
                     magic()
             if button_exit.collidepoint(pygame.mouse.get_pos()):
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -342,12 +346,32 @@ def show_dev_info(show: bool, screen: pygame.surface, time: int, user_car: Car, 
         pygame.draw.rect(screen, RED, user_car.hitbox, 1)
 
 
-def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, background: Background):
+def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, score, background: Background):
+    y1 = DP_HEIGHT - 9.5*(DP_HEIGHT/10)
+    y2 = DP_HEIGHT - 9*(DP_HEIGHT / 10)
+    y3 = DP_HEIGHT - 8.5*(DP_HEIGHT / 10)
+    x = DP_WIDTH//10
+    sz = (int)(DP_HEIGHT/40)
+
     if not show:
-        font_object = pygame.font.Font(pygame.font.get_default_font(), DP_HEIGHT//50)
-        screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//90))
-        screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//30))
-        screen.blit(font_object.render(f"Health: {user_car.health}", True, RED), (DP_WIDTH/45, DP_HEIGHT//18))
+        font_object = pygame.font.Font(pygame.font.get_default_font(), sz)
+        #screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//90))
+        screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (x, y1))
+        screen.blit(font_object.render(f"Health: {user_car.health}", True, RED), (x, y2))
+        screen.blit(font_object.render(f"Score: {int(score)}", True, GREEN), (x, y3))
+
+
+def show_score_info(show: bool, screen: pygame.surface,  previous_score, best_score, background: Background):
+    x = DP_WIDTH - 2.2*(DP_WIDTH/10)
+    y1 = DP_HEIGHT - 9.5 * (DP_HEIGHT / 10)
+    y2 = DP_HEIGHT - 9 * (DP_HEIGHT / 10)
+    #y3 = DP_HEIGHT - 8.5 * (DP_HEIGHT / 10)
+    sz = (int)(DP_HEIGHT / 40)
+    if not show:
+        font_object = pygame.font.Font(pygame.font.get_default_font(), (sz))
+        #screen.blit(font_object.render(f"Score: {int(score)}", True, GREEN), (x, DP_HEIGHT//90))
+        screen.blit(font_object.render(f"Previous score: {int(previous_score)}", True, BLACK), (x, y1))
+        screen.blit(font_object.render(f"Best score: {int(best_score)}", True, BLUE), (x, y2))
         #screen.blit(font_object.render(f"Score: {}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//9))
 
 def magic():
@@ -362,7 +386,7 @@ def magic():
 
     frame_count = 0
 
-
+    global SCORE
     dev_info = False
     running = True
     while running:
@@ -371,7 +395,7 @@ def magic():
 
         frame_count += 1
         second_count = frame_count / FPS
-
+        SCORE += 0.01*background.speed
 
 
         enemies.generate(second_count)
@@ -389,9 +413,9 @@ def magic():
         coins.draw()
         enemies.draw()
         user_car.draw()
-
+        show_score_info(dev_info, screen,  PREVIOUS_SCORE,BEST_SCORE,background)
         show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins)
-        show_player_info(dev_info, screen, second_count, coins, user_car, background)
+        show_player_info(dev_info, screen, second_count, coins, user_car, SCORE, background)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
