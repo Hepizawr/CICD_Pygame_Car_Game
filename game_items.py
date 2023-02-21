@@ -13,8 +13,7 @@ class Background:
         self.y = bg_y
         self.speed = min_spead
         self.max_speed = max_speed
-        image = pygame.image.load(bg_path)
-        self.image = pygame.transform.scale(image, (DP_HEIGHT, DP_HEIGHT))
+        self.image = get_background_right_image(bg_path)
         self.rect = self.image.get_rect(centerx=DP_WIDTH // 2, y=self.y)
 
     def draw(self):
@@ -32,6 +31,11 @@ class Background:
             self.rect.y += self.speed
         else:
             self.rect.y = 0
+
+
+def get_background_right_image(background_path: str):
+    image = pygame.image.load(background_path)
+    return pygame.transform.scale(image, (DP_HEIGHT, DP_HEIGHT))
 
 
 def get_car_right_image(model_path: str):
@@ -83,7 +87,8 @@ class Car(RoadObject):
     def make_invulnerable(self, time: int, frame: int):
         if self.damage_taken and self.health > 0:
             if int(time - self.invulnerable_time_start) != USER_CAR_INVULNERABLE_TIME:
-                self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(CAR_PATH)
+                self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(
+                    CAR_PATH)
             else:
                 self.image = get_car_right_image(CAR_PATH)
                 self.damage_taken = False
@@ -122,15 +127,15 @@ class Enemies(RoadObjects):
     def move(self, speed: int):
         for item in self.list:
             if item.ob_rotate:
-                item.rect.centery += round(speed * 1.2)
+                item.rect.centery += round(speed * 1.25)
             else:
-                item.rect.centery += int(speed / 1.2)
+                item.rect.centery += round(speed * 0.75)
             item.hitbox.centery = item.rect.centery
         self._check_object_delete()
 
     def generate(self):
         random.seed(tm.time())
-        if len(self.list) == 0 or self.list[-1].rect.y > random.randint(DP_HEIGHT//(-45), DP_HEIGHT//9):
+        if len(self.list) == 0 or self.list[-1].rect.y > random.randint(DP_HEIGHT // (-45), DP_HEIGHT // 9):
             car_model = CARS_PATH[random.randrange(0, len(CARS_PATH))]
             road_line = DP_HEIGHT * (random.randrange(28, 74, 15) / 100) + DP_DELTA
             if road_line < DP_WIDTH / 2:
@@ -138,7 +143,7 @@ class Enemies(RoadObjects):
             else:
                 self.list.append(RoadObject(self.screen, car_model, road_line, -120, False))
 
-    def collision(self, collision_object: Car, time: int):
+    def collision(self, collision_object: Car, time: float):
         for item in self.list:
             if item.hitbox.colliderect(collision_object.hitbox) and not collision_object.damage_taken:
                 if collision_object.health > 1:
@@ -154,7 +159,7 @@ class Coins(RoadObjects):
 
     def generate(self):
         random.seed(tm.time())
-        if len(self.list) == 0 or self.list[-1].rect.y > DP_HEIGHT//2:
+        if len(self.list) == 0 or self.list[-1].rect.y > DP_HEIGHT // 2:
             coin_model = COIN_PATH
             road_line = DP_HEIGHT * (random.randrange(28, 74, 15) / 100) + DP_DELTA
             self.list.append(RoadObject(self.screen, coin_model, road_line, -120))
@@ -166,12 +171,14 @@ class Coins(RoadObjects):
                 self.list.remove(item)
 
 
-def start_screen(screen: pygame.surface, background: Background):
+def start_screen(screen: pygame.surface, background_path: str):
     running = True
 
     while running:
         screen.fill(GRAY)
-        background.draw()
+        image = get_background_right_image(background_path)
+        image_rect = image.get_rect(y=0, centerx=DP_WIDTH//2)
+        screen.blit(image, image_rect)
 
         button_image = pygame.image.load(BUTTON_PATH)
         k_button_widht = button_image.get_rect().width / button_image.get_rect().height
@@ -275,7 +282,7 @@ def end_screen(screen: pygame.surface):
             if button_restart.collidepoint(pygame.mouse.get_pos()):
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     PREVIOUS_SCORE = SCORE
-                    if PREVIOUS_SCORE>BEST_SCORE:
+                    if PREVIOUS_SCORE > BEST_SCORE:
                         BEST_SCORE = PREVIOUS_SCORE
                     SCORE = 0
                     magic()
@@ -287,7 +294,8 @@ def end_screen(screen: pygame.surface):
                 quit()
 
 
-def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car, background: Background, enemies, coins, frame: int):
+def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car, background: Background, enemies,
+                  coins, frame: int):
     if show:
         font_object = pygame.font.Font(pygame.font.get_default_font(), 15)
 
@@ -303,7 +311,7 @@ def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car
         screen.blit(font_object.render(f"Player health: {user_car.health}", True, BLACK), (10, 140))
         screen.blit(font_object.render(f"Player damage taken: {user_car.damage_taken}", True, BLACK), (10, 160))
 
-        if frame % (240/background.speed) == 0:
+        if frame % (240 / background.speed) == 0:
             screen.blit(font_object.render(f"Frame: {frame}", True, RED), (10, 180))
         else:
             screen.blit(font_object.render(f"Frame: {frame}", True, BLACK), (10, 180))
@@ -316,36 +324,37 @@ def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car
         pygame.draw.rect(screen, RED, user_car.hitbox, 1)
 
 
-def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, score, background: Background):
-    y1 = DP_HEIGHT - 9.5*(DP_HEIGHT/10)
-    y2 = DP_HEIGHT - 9*(DP_HEIGHT / 10)
-    y3 = DP_HEIGHT - 8.5*(DP_HEIGHT / 10)
-    x = DP_WIDTH//10
-    sz = (int)(DP_HEIGHT/40)
+def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, score,
+                     background: Background):
+    y1 = DP_HEIGHT - 9.5 * (DP_HEIGHT / 10)
+    y2 = DP_HEIGHT - 9 * (DP_HEIGHT / 10)
+    y3 = DP_HEIGHT - 8.5 * (DP_HEIGHT / 10)
+    x = DP_WIDTH // 10
+    sz = int(DP_HEIGHT / 40)
 
     if not show:
         font_object = pygame.font.Font(pygame.font.get_default_font(), sz)
-        #screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//90))
+        # screen.blit(font_object.render(f"Time: {int(time)}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//90))
         screen.blit(font_object.render(f"Coins: {coins.count}", True, BLACK), (x, y1))
         screen.blit(font_object.render(f"Health: {user_car.health}", True, RED), (x, y2))
         screen.blit(font_object.render(f"Score: {int(score)}", True, GREEN), (x, y3))
 
 
-def show_score_info(show: bool, screen: pygame.surface,  previous_score, best_score, background: Background):
-    x = DP_WIDTH - 2.2*(DP_WIDTH/10)
+def show_score_info(show: bool, screen: pygame.surface, previous_score, best_score, background: Background):
+    x = DP_WIDTH - 2.2 * (DP_WIDTH / 10)
     y1 = DP_HEIGHT - 9.5 * (DP_HEIGHT / 10)
     y2 = DP_HEIGHT - 9 * (DP_HEIGHT / 10)
-    #y3 = DP_HEIGHT - 8.5 * (DP_HEIGHT / 10)
-    sz = (int)(DP_HEIGHT / 40)
+    # y3 = DP_HEIGHT - 8.5 * (DP_HEIGHT / 10)
+    sz = int(DP_HEIGHT / 40)
     if not show:
-        font_object = pygame.font.Font(pygame.font.get_default_font(), (sz))
-        #screen.blit(font_object.render(f"Score: {int(score)}", True, GREEN), (x, DP_HEIGHT//90))
+        font_object = pygame.font.Font(pygame.font.get_default_font(), sz)
+        # screen.blit(font_object.render(f"Score: {int(score)}", True, GREEN), (x, DP_HEIGHT//90))
         screen.blit(font_object.render(f"Previous score: {int(previous_score)}", True, BLACK), (x, y1))
         screen.blit(font_object.render(f"Best score: {int(best_score)}", True, BLUE), (x, y2))
-        #screen.blit(font_object.render(f"Score: {}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//9))
+        # screen.blit(font_object.render(f"Score: {}", True, BLACK), (DP_WIDTH/45, DP_HEIGHT//9))
+
 
 def magic():
-
     screen = pygame.display.set_mode((DP_WIDTH, DP_HEIGHT))
     clock = pygame.time.Clock()
 
@@ -365,11 +374,10 @@ def magic():
 
         frame_count += 1
         second_count = frame_count / FPS
-        SCORE += 0.01*background.speed
+        SCORE += 0.01 * background.speed
 
-
-        enemies.generate(second_count)
-        coins.generate(second_count)
+        enemies.generate()
+        coins.generate()
 
         user_car.make_invulnerable(second_count, frame_count)
 
@@ -383,8 +391,9 @@ def magic():
         coins.draw()
         enemies.draw()
         user_car.draw()
-        show_score_info(dev_info, screen,  PREVIOUS_SCORE,BEST_SCORE,background)
-        show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins)
+
+        show_score_info(dev_info, screen, PREVIOUS_SCORE, BEST_SCORE, background)
+        show_dev_info(dev_info, screen, second_count, user_car, background, enemies, coins, frame_count)
         show_player_info(dev_info, screen, second_count, coins, user_car, SCORE, background)
 
         for event in pygame.event.get():
@@ -400,6 +409,3 @@ def magic():
 
         enemies.collision(user_car, second_count)
         coins.collision(user_car, second_count)
-
-
-        #game()
