@@ -1,6 +1,5 @@
 import pygame
 import random
-import argparse
 from abc import ABC, abstractmethod
 import time as tm
 from game_config import *
@@ -59,11 +58,14 @@ class RoadObject:
     def draw(self):
         self.screen.blit(self.image, self.rect)
 
+    def check_collision(self, collision_object):
+        return self.hitbox.colliderect(collision_object.hitbox)
+
 
 class Car(RoadObject):
     health = USER_CAR_HEALTH
-    damage_taken = False
-    invulnerable_time_start = 0
+    immortal = False
+    immortal_time_start = 0
 
     def move(self):
         speed = DP_HEIGHT * 0.015
@@ -84,14 +86,14 @@ class Car(RoadObject):
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.centery = self.rect.centery
 
-    def make_invulnerable(self, time: int, frame: int):
-        if self.damage_taken and self.health > 0:
-            if int(time - self.invulnerable_time_start) != USER_CAR_INVULNERABLE_TIME:
+    def make_immortal(self, time: int, frame: int):
+        if self.immortal and self.health > 0:
+            if int(time - self.immortal_time_start) != USER_CAR_INVULNERABLE_TIME:
                 self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(
                     CAR_PATH)
             else:
                 self.image = get_car_right_image(CAR_PATH)
-                self.damage_taken = False
+                self.immortal = False
 
 
 class RoadObjects(ABC):
@@ -115,7 +117,7 @@ class RoadObjects(ABC):
                 self.list.remove(item)
 
     @abstractmethod
-    def collision(self, collision_object: Car, time: int):
+    def collision_action(self, collision_object: Car, time: int):
         ...
 
     @abstractmethod
@@ -143,15 +145,30 @@ class Enemies(RoadObjects):
             else:
                 self.list.append(RoadObject(self.screen, car_model, road_line, -120, False))
 
-    def collision(self, collision_object: Car, time: float):
+    def collision_action(self, collision_object: Car, time: float):
         for item in self.list:
-            if item.hitbox.colliderect(collision_object.hitbox) and not collision_object.damage_taken:
-                if collision_object.health > 1:
-                    collision_object.health -= 1
-                    collision_object.damage_taken = True
-                    collision_object.invulnerable_time_start = time
-                elif collision_object.health == 1:
-                    end_screen(self.screen)
+            if not item.check_collision(collision_object):
+                continue
+            
+            if collision_object.immortal:
+                continue
+
+            if collision_object.health > 1:
+                collision_object.health -= 1
+                collision_object.immortal = True
+                collision_object.immortal_time_start = time
+            else:
+                end_screen(self.screen)
+
+    # def collision(self, collision_object: Car, time: float):
+    #     for item in self.list:
+    #         if item.hitbox.colliderect(collision_object.hitbox) and not collision_object.immortal:
+    #             if collision_object.health > 1:
+    #                 collision_object.health -= 1
+    #                 collision_object.immortal = True
+    #                 collision_object.immortal_time_start = time
+    #             elif collision_object.health == 1:
+    #                 end_screen(self.screen)
 
 
 class Coins(RoadObjects):
@@ -164,9 +181,9 @@ class Coins(RoadObjects):
             road_line = DP_HEIGHT * (random.randrange(28, 74, 15) / 100) + DP_DELTA
             self.list.append(RoadObject(self.screen, coin_model, road_line, -120))
 
-    def collision(self, collision_object: Car, time: int):
+    def collision_action(self, collision_object: Car, time: int):
         for item in self.list:
-            if item.hitbox.colliderect(collision_object.hitbox):
+            if item.check_collision(collision_object):
                 self.count += 1
                 self.list.remove(item)
 
@@ -309,7 +326,7 @@ def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car
         screen.blit(font_object.render(f"Enemies count: {len(enemies.list)}", True, BLACK), (10, 100))
         screen.blit(font_object.render(f"Coins count: {len(coins.list)}", True, BLACK), (10, 120))
         screen.blit(font_object.render(f"Player health: {user_car.health}", True, BLACK), (10, 140))
-        screen.blit(font_object.render(f"Player damage taken: {user_car.damage_taken}", True, BLACK), (10, 160))
+        screen.blit(font_object.render(f"Player damage taken: {user_car.immortal}", True, BLACK), (10, 160))
 
         if frame % (240 / background.speed) == 0:
             screen.blit(font_object.render(f"Frame: {frame}", True, RED), (10, 180))
@@ -379,7 +396,7 @@ def magic():
         enemies.generate()
         coins.generate()
 
-        user_car.make_invulnerable(second_count, frame_count)
+        user_car.make_immortal(second_count, frame_count)
 
         background.move(second_count)
         coins.move(background.speed)
@@ -407,5 +424,5 @@ def magic():
 
         pygame.display.update()
 
-        enemies.collision(user_car, second_count)
-        coins.collision(user_car, second_count)
+        enemies.collision_action(user_car, second_count)
+        coins.collision_action(user_car, second_count)
