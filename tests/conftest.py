@@ -1,6 +1,4 @@
 import pytest
-import pygame
-from game_config import *
 from game_items import *
 
 

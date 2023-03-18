@@ -1,5 +1,4 @@
 import pygame
-import pytest
 
 
 def test_user_car_move(game_imitation, monkeypatch):

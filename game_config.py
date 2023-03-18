@@ -1,3 +1,5 @@
+from os import path
+
 DP_WIDTH = 1600
 DP_HEIGHT = 900
 DP_DELTA = (DP_WIDTH - DP_HEIGHT) // 2
@@ -28,29 +30,29 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-AUDI = "image/cars/Rght_size/AUDI.png"
-AMBULANCE = "image/cars/Rght_size/Ambulance.png"
-VIPER = "image/cars/Rght_size/BLACK_VIPER.png"
-CAR = "image/cars/Rght_size/CAR.png"
-MINI_TRUCK = "image/cars/Rght_size/MINI_TRUCK.png"
-MINI_VAN = "image/cars/Rght_size/MINI_VAN.png"
-POLICE = "image/cars/Rght_size/POLICE.png"
-TAXI = "image/cars/Rght_size/TAXI.png"
-TRUCK = "image/cars/Rght_size/TRUCK.png"
+AUDI = path.abspath("image/cars/Rght_size/AUDI.png")
+AMBULANCE = path.abspath("image/cars/Rght_size/Ambulance.png")
+VIPER = path.abspath("image/cars/Rght_size/BLACK_VIPER.png")
+CAR = path.abspath("image/cars/Rght_size/CAR.png")
+MINI_TRUCK = path.abspath("image/cars/Rght_size/MINI_TRUCK.png")
+MINI_VAN = path.abspath("image/cars/Rght_size/MINI_VAN.png")
+POLICE = path.abspath("image/cars/Rght_size/POLICE.png")
+TAXI = path.abspath("image/cars/Rght_size/TAXI.png")
+TRUCK = path.abspath("image/cars/Rght_size/TRUCK.png")
 
-AUDI_SPIRIT = "image/cars/Rght_size/Spirit/AUDI.png"
-VIPER_SPIRIT = "image/cars/Rght_size/Spirit/BLACK_VIPER.png"
-CAR_SPIRIT = "image/cars/Rght_size/Spirit/Car.png"
-TAXI_SPIRIT = "image/cars/Rght_size/Spirit/Taxi.png"
-POLICE_SPIRIT = "image/cars/Rght_size/Spirit/Police.png"
+AUDI_SPIRIT = path.abspath("image/cars/Rght_size/Spirit/AUDI.png")
+VIPER_SPIRIT = path.abspath("image/cars/Rght_size/Spirit/BLACK_VIPER.png")
+CAR_SPIRIT = path.abspath("image/cars/Rght_size/Spirit/Car.png")
+TAXI_SPIRIT = path.abspath("image/cars/Rght_size/Spirit/Taxi.png")
+POLICE_SPIRIT = path.abspath("image/cars/Rght_size/Spirit/Police.png")
 
 CAR_PATH = AUDI
 CAR_SPIRIT_PATH = AUDI_SPIRIT
 CARS_PATH = [AUDI, AMBULANCE, VIPER, CAR, MINI_TRUCK, MINI_VAN, POLICE, TAXI, TRUCK]
 
-BG_PATH = "image/background/background-1_0.png"
-BUTTON_PATH = "image/buttons/Button08.png"
-COIN_PATH = "image/coins/coin.png"
+BG_PATH = path.abspath("image/background/background-1_0.png")
+BUTTON_PATH = path.abspath("image/buttons/Button08.png")
+COIN_PATH = path.abspath("image/coins/coin.png")
 
 
 def cliargparse():
@@ -82,4 +84,4 @@ def cliargparse():
             CAR_SPIRIT_PATH = CAR_SPIRIT
 
 
-cliargparse()
+# cliargparse()
