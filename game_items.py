@@ -6,8 +6,17 @@ from game_config import *
 
 
 class Background:
+
     def __init__(self, screen: pygame.surface, bg_path: str = BG_PATH, bg_y: int = 0, min_spead: int = MIN_BG_SPEED,
                  max_speed: int = MAX_BG_SPEED):
+        """
+        Creation of background.
+        :param screen: screen created with pygame surface for run process
+        :param bg_path: selected picture of background
+        :param bg_y: y-coordinate of picture on the screen in the current frame
+        :param min_spead: starting speed of screen
+        :param max_speed: max speed of screen
+        """
         self.screen = screen
         self.y = bg_y
         self.speed = min_spead
@@ -16,10 +25,22 @@ class Background:
         self.rect = self.image.get_rect(centerx=DP_WIDTH // 2, y=self.y)
 
     def draw(self):
+        """
+        Rendering function of item.
+        :return: draw background on screen
+        """
         self.screen.blit(self.image, self.rect)
         self.screen.blit(self.image, (self.rect.x, self.rect.y - DP_HEIGHT))
 
     def move(self, time: int, time_to_up: int = TIME_TO_BG_SPEED_UP, delta: int = DELTA_BG_SPEED):
+        """
+        Pseudo motion function of object.
+        Simulates the movement of object thanks to the reduction of coordinates at a certain speed
+        :param time: Stopwatch
+        :param time_to_up: value to increase motion speed of object at certain intervals
+        :param delta: specially calculated unit to increase speed.
+        :return: speed of movement
+        """
         if self.speed < self.max_speed:
             if time != 0 and time % time_to_up == 0:
                 self.speed += delta
@@ -33,11 +54,21 @@ class Background:
 
 
 def get_background_right_image(background_path: str):
+    """
+        Function makes our background image adaptive to any screen size
+        :param background_path: path to background image
+        :return: adaptive background size
+        """
     image = pygame.image.load(background_path)
     return pygame.transform.scale(image, (DP_HEIGHT, DP_HEIGHT))
 
 
 def get_car_right_image(model_path: str):
+    """
+        Function makes models of cars adaptive to size screen
+        :param model_path: path to car models image
+        :return: adaptive car models size
+        """
     image = pygame.image.load(model_path)
     k_height = image.get_height() / image.get_width()
     return pygame.transform.scale(image, (DP_HEIGHT / 8.5, (DP_HEIGHT / 8.5) * k_height))
@@ -46,6 +77,14 @@ def get_car_right_image(model_path: str):
 class RoadObject:
     def __init__(self, screen: pygame.surface, model_path: str, ob_centerx: int = (DP_WIDTH // 2),
                  ob_bottom: int = DP_HEIGHT, ob_rotate: bool = False):
+        """
+        Creation of road objects. Base Class
+        :param screen: screen created with pygame surface for run process
+        :param model_path: path to images of road object models
+        :param ob_centerx: x-coordinate found by dividing the screen size by two
+        :param ob_bottom: last y-coordinate of screen size
+        :param ob_rotate: bool which is responsible for models rotation
+        """
         self.screen = screen
         self.ob_rotate = ob_rotate
         image = get_car_right_image(model_path)
@@ -56,9 +95,18 @@ class RoadObject:
             centerx=self.rect.centerx, centery=self.rect.centery)
 
     def draw(self):
+        """
+        Rendering function of items.
+        :return: draw models on screen
+        """
         self.screen.blit(self.image, self.rect)
 
     def check_collision(self, collision_object):
+        """
+        Function that check collision of road objects
+        :param collision_object: checked object
+        :return: bool result of collision check
+        """
         return self.hitbox.colliderect(collision_object.hitbox)
 
 
@@ -68,6 +116,10 @@ class Car(RoadObject):
     immortal_time_start = 0
 
     def move(self):
+        """
+        Motion function of User Car.
+        :return: new coordinates of user car
+        """
         speed = DP_HEIGHT * 0.015
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -87,6 +139,11 @@ class Car(RoadObject):
         self.hitbox.centery = self.rect.centery
 
     def make_immortal(self, time: int, frame: int):
+        """
+        Function makes user car immortal for a few seconds after user lost health
+        :param time: Stopwatch
+        :param frame: current frame
+        """
         if self.immortal and self.health > 0:
             if int(time - self.immortal_time_start) != USER_CAR_INVULNERABLE_TIME:
                 self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(
@@ -98,35 +155,64 @@ class Car(RoadObject):
 
 class RoadObjects(ABC):
     def __init__(self, screen: pygame.surface):
+        """
+        Initialization of road objects. Base class func.
+        :param screen: screen created with pygame surface for run process
+        """
         self.screen = screen
         self.list = []
 
     def draw(self):
+        """
+        Rendering function of objects. Base class func.
+        :return: objects on screen
+        """
         for item in self.list:
             item.draw()
 
     def move(self, speed: int):
+        """
+        Motion function of road objects. Base class func.
+        Function move objects on screen and delete them when they played their part
+        :param speed: speed of movement on the screen
+        """
         for item in self.list:
             item.rect.centery += speed
             item.hitbox.centery = item.rect.centery
         self._check_object_delete()
 
     def _check_object_delete(self):
+        """
+        Func which is responsible for removal of road objects.
+        :return:
+        """
         for item in self.list:
             if item.rect.y > DP_HEIGHT:
                 self.list.remove(item)
 
     @abstractmethod
     def collision_action(self, collision_object: Car, time: int):
+        """
+        Abstract method responsible for tracking the collision
+        :param collision_object: tracked object
+        :param time: stopwatch
+        """
         ...
 
     @abstractmethod
     def generate(self):
+        """
+        Abstract method responsible for generation of objects
+        """
         ...
 
 
 class Enemies(RoadObjects):
     def move(self, speed: int):
+        """
+        Method responsible for movement of enemies on the road
+        :param speed: speed of background
+        """
         for item in self.list:
             if item.ob_rotate:
                 item.rect.centery += round(speed * 1.25)
@@ -136,6 +222,10 @@ class Enemies(RoadObjects):
         self._check_object_delete()
 
     def generate(self):
+        """
+        Method which generates enemies on the road
+        :return: new objects
+        """
         random.seed(tm.time())
         if len(self.list) == 0 or self.list[-1].rect.y > random.randint(DP_HEIGHT // (-45), DP_HEIGHT // 9):
             car_model = CARS_PATH[random.randrange(0, len(CARS_PATH))]
@@ -146,6 +236,13 @@ class Enemies(RoadObjects):
                 self.list.append(RoadObject(self.screen, car_model, road_line, -120, False))
 
     def collision_action(self, collision_object: Car, time: float):
+        """
+        Method responsible for tracking the collision
+        :param collision_object: checked object - user car
+        :param time: stopwatch
+        :return: bool result of objects collision
+        """
+
         for item in self.list:
             if not item.check_collision(collision_object):
                 continue
@@ -175,6 +272,10 @@ class Coins(RoadObjects):
     count = 0
 
     def generate(self):
+        """
+        Method which generates coins on the road
+        :return: new coins
+        """
         random.seed(tm.time())
         if len(self.list) == 0 or self.list[-1].rect.y > DP_HEIGHT // 2:
             coin_model = COIN_PATH
@@ -182,6 +283,12 @@ class Coins(RoadObjects):
             self.list.append(RoadObject(self.screen, coin_model, road_line, -120))
 
     def collision_action(self, collision_object: Car, time: int):
+        """
+        Method responsible for tracking the collision
+        :param collision_object: checked object - user car
+        :param time: stopwatch
+        :return: bool result
+        """
         for item in self.list:
             if item.check_collision(collision_object):
                 self.count += 1
@@ -189,6 +296,13 @@ class Coins(RoadObjects):
 
 
 def start_screen(screen: pygame.surface, background_path: str):
+    """
+    Method that creates start menu for user
+    :param screen: screen created with pygame surface for run process
+    :param background_path: path to image of background
+    :return: start menu
+
+    """
     running = True
 
     while running:
@@ -233,6 +347,11 @@ def start_screen(screen: pygame.surface, background_path: str):
 
 
 def pause_screen(screen: pygame.surface):
+    """
+    Method that shows the pause menu to the user
+    :param screen: screen created with pygame surface for run process
+    :return: pause menu on screen
+    """
     running = True
 
     while running:
@@ -272,6 +391,11 @@ def pause_screen(screen: pygame.surface):
 
 
 def end_screen(screen: pygame.surface):
+    """
+    Method that shows the end screen to the user
+    :param screen: screen created with pygame surface for run process
+    :return: end screen
+    """
     running = True
 
     while running:
@@ -313,6 +437,18 @@ def end_screen(screen: pygame.surface):
 
 def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car, background: Background, enemies,
                   coins, frame: int):
+    """
+    Method that shows additional developer info to the player
+    :param show: bool value
+    :param screen: screen created with pygame surface for run process
+    :param time: stopwatch
+    :param user_car: User Car object
+    :param background: created Background
+    :param enemies: enemies objects
+    :param coins: coins objects
+    :param frame: int value - current frame
+    :return: dev info
+    """
     if show:
         font_object = pygame.font.Font(pygame.font.get_default_font(), 15)
 
@@ -343,6 +479,17 @@ def show_dev_info(show: bool, screen: pygame.surface, time: float, user_car: Car
 
 def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins, user_car: Car, score,
                      background: Background):
+    """
+    Method that shows player info to the player
+    :param show: bool value
+    :param screen: screen created with pygame surface for run process
+    :param time: stopwatch
+    :param coins: coins objects
+    :param user_car: User Car object
+    :param score: current score of player
+    :param background: created Background
+    :return: player info
+    """
     y1 = DP_HEIGHT - 9.5 * (DP_HEIGHT / 10)
     y2 = DP_HEIGHT - 9 * (DP_HEIGHT / 10)
     y3 = DP_HEIGHT - 8.5 * (DP_HEIGHT / 10)
@@ -358,6 +505,15 @@ def show_player_info(show: bool, screen: pygame.surface, time: int, coins: Coins
 
 
 def show_score_info(show: bool, screen: pygame.surface, previous_score, best_score, background: Background):
+    """
+    Method that shows to the player additional info about score
+    :param show: bool value
+    :param screen:  screen created with pygame surface for run process
+    :param previous_score: int value - last score of player
+    :param best_score: int value - best score of player
+    :param background: created Background
+    :return: score info
+    """
     x = DP_WIDTH - 2.2 * (DP_WIDTH / 10)
     y1 = DP_HEIGHT - 9.5 * (DP_HEIGHT / 10)
     y2 = DP_HEIGHT - 9 * (DP_HEIGHT / 10)
@@ -372,6 +528,11 @@ def show_score_info(show: bool, screen: pygame.surface, previous_score, best_sco
 
 
 def magic():
+    """
+    Main method.
+    Method that collects all methods in itself.
+    :return: game process
+    """
     screen = pygame.display.set_mode((DP_WIDTH, DP_HEIGHT))
     clock = pygame.time.Clock()
 
