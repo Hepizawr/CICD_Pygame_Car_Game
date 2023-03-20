@@ -63,11 +63,11 @@ def get_background_right_image(background_path: str):
     return pygame.transform.scale(image, (DP_HEIGHT, DP_HEIGHT))
 
 
-def get_car_right_image(model_path: str):
+def get_model_right_image(model_path: str):
     """
         Function makes models of cars adaptive to size screen
-        :param model_path: path to car models image
-        :return: adaptive car models size
+        :param model_path: path to  model image
+        :return: adaptive model image size
         """
     image = pygame.image.load(model_path)
     k_height = image.get_height() / image.get_width()
@@ -87,7 +87,7 @@ class RoadObject:
         """
         self.screen = screen
         self.ob_rotate = ob_rotate
-        image = get_car_right_image(model_path)
+        image = get_model_right_image(model_path)
         self.image = pygame.transform.rotate(image, 180 * self.ob_rotate)
         self.rect = self.image.get_rect(centerx=ob_centerx, bottom=ob_bottom)
         self.hitbox = pygame.transform.scale(self.image,
@@ -146,10 +146,10 @@ class Car(RoadObject):
         """
         if self.immortal and self.health > 0:
             if int(time - self.immortal_time_start) != USER_CAR_INVULNERABLE_TIME:
-                self.image = get_car_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_car_right_image(
+                self.image = get_model_right_image(CAR_SPIRIT_PATH) if frame % 6 in (0, 1, 2) else get_model_right_image(
                     CAR_PATH)
             else:
-                self.image = get_car_right_image(CAR_PATH)
+                self.image = get_model_right_image(CAR_PATH)
                 self.immortal = False
 
 
@@ -240,7 +240,7 @@ class Enemies(RoadObjects):
         Method responsible for tracking the collision
         :param collision_object: checked object - user car
         :param time: stopwatch
-        :return: bool result of objects collision
+        :return: action of objects collision
         """
 
         for item in self.list:
@@ -287,7 +287,7 @@ class Coins(RoadObjects):
         Method responsible for tracking the collision
         :param collision_object: checked object - user car
         :param time: stopwatch
-        :return: bool result
+        :return: action of objects collision
         """
         for item in self.list:
             if item.check_collision(collision_object):
