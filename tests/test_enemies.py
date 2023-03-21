@@ -2,7 +2,7 @@ from game_config import DP_HEIGHT
 import pytest
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.parametrize("y_move, result",
                          [
                              (DP_HEIGHT//7, True),

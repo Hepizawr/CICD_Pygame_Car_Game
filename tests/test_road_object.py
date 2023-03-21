@@ -1,6 +1,8 @@
 import pytest
-from game_config import *
+from game_config import DP_HEIGHT, DP_WIDTH
 from game_items import RoadObject
+
+CAR = "audi.png"
 
 
 @pytest.mark.parametrize("user_car, enemy_car, result",
